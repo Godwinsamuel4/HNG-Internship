@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samuel Godwin - Web Developer</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #4285F4;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        section {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        footer p {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Samuel Godwin</h1>
+            <p>Web Developer</p>
+        </header>
+        <main>
+            <section>
+                <p>Hello, I'm Samuel Godwin, a passionate web developer.</p>
+                <p>I am happy to have an internship with HNG Internship.</p>
+                <p>You can visit them at <a href="https://hng.tech" target="_blank">hng.tech</a>.</p>
+                <p>Contact me at <a href="mailto:godwinsamuel41@gmail.com">godwinsamuel41@gmail.com</a>.</p>
+            </section>
+            <section>
+                <h2>About Me</h2>
+                <p>I enjoy creating web applications and learning new technologies.</p>
+            </section>
+            <section>
+                <h2>Projects</h2>
+                <ul>
+                    <li>Project 1 - Description</li>
+                    <li>Project 2 - Description</li>
+                    <li>Project 3 - Description</li>
+                </ul>
+            </section>
+            <section>
+                <h2>Contact</h2>
+                <p>Feel free to reach out to me via email or LinkedIn.</p>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Samuel Godwin. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
