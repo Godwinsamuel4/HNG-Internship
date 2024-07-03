@@ -1,92 +1,71 @@
 #!/bin/bash
 
-# Function to generate a random password
-generate_password() {
-    # Generate a 10-character random alphanumeric password
-    pw=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 10)
-    echo "$pw"
+# Check if the user has provided a file
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 <name-of-text-file>"
+  exit 1
+fi
+
+INPUT_FILE=$1
+
+# Check if the file exists
+if [ ! -f $INPUT_FILE ]; then
+  echo "File $INPUT_FILE does not exist."
+  exit 1
+fi
+
+# Log and password files
+LOG_FILE="/var/log/user_management.log"
+PASSWORD_FILE="/var/secure/user_passwords.csv"
+
+# Create the necessary directories if they don't exist
+mkdir -p /var/secure
+touch $LOG_FILE
+touch $PASSWORD_FILE
+chmod 600 $PASSWORD_FILE
+
+# Function to create a user and assign groups
+create_user() {
+  USERNAME=$1
+  GROUPS=$2
+
+  # Create user group with the same name as the username
+  if ! getent group $USERNAME > /dev/null 2>&1; then
+    groupadd $USERNAME
+    echo "$(date) - Group $USERNAME created." >> $LOG_FILE
+  else
+    echo "$(date) - Group $USERNAME already exists." >> $LOG_FILE
+  fi
+
+  # Create the user with the specified groups
+  if ! id -u $USERNAME > /dev/null 2>&1; then
+    useradd -m -g $USERNAME -G $GROUPS $USERNAME
+    echo "$(date) - User $USERNAME created and added to groups $GROUPS." >> $LOG_FILE
+
+    # Generate a random password for the user
+    PASSWORD=$(openssl rand -base64 12)
+    echo "$USERNAME,$PASSWORD" >> $PASSWORD_FILE
+    echo "$(date) - Password for $USERNAME set and stored securely." >> $LOG_FILE
+
+    # Set the password for the user
+    echo "$USERNAME:$PASSWORD" | chpasswd
+  else
+    echo "$(date) - User $USERNAME already exists." >> $LOG_FILE
+  fi
 }
 
-# Log file path
-log_file="/var/log/user_management.log"
-# Secure password file path
-password_file="/var/secure/user_passwords.txt"
+# Read the file line by line
+while IFS=';' read -r USERNAME GROUPS; do
+  # Trim leading/trailing whitespace from username and groups
+  USERNAME=$(echo $USERNAME | xargs)
+  GROUPS=$(echo $GROUPS | xargs)
 
-# Check if log file exists, create if not
-if [ ! -f "$log_file" ]; then
-    sudo touch "$log_file"
-fi
+  # Replace any spaces in group list with commas
+  GROUPS=$(echo $GROUPS | sed 's/ /,/g')
 
-# Check if password file exists, create if not
-if [ ! -f "$password_file" ]; then
-    sudo touch "$password_file"
-    sudo chmod 600 "$password_file"  # Ensure only file owner can read
-fi
+  # Create the user
+  create_user $USERNAME $GROUPS
+done < $INPUT_FILE
 
-# Main script logic
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <text-file>"
-    exit 1
-fi
+echo "User creation process completed. Check $LOG_FILE for details and $PASSWORD_FILE for passwords."
 
-input_file="$1"
-
-# Check if input file exists
-if [ ! -f "$input_file" ]; then
-    echo "Error: Input file not found!"
-    exit 1
-fi
-
-# Read each line in the input file
-while IFS=';' read -r username groups; do
-    # Trim leading/trailing whitespace
-    username=$(echo "$username" | tr -d '[:space:]')
-    groups=$(echo "$groups" | tr -d '[:space:]')
-
-    # Check if username or groups are empty
-    if [ -z "$username" ] || [ -z "$groups" ]; then
-        echo "Error: Invalid format in input file."
-        continue
-    fi
-
-    # Create group if it does not exist
-    if ! getent group "$username" > /dev/null 2>&1; then
-        sudo groupadd "$username"
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to create group '$username'."
-            continue
-        fi
-    fi
-
-    # Create user
-    if ! id "$username" > /dev/null 2>&1; then
-        sudo useradd -m -s /bin/bash -g "$username" -G "$groups" "$username"
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to create user '$username'."
-            continue
-        fi
-    else
-        echo "User '$username' already exists."
-        continue
-    fi
-
-    # Generate a password
-    password=$(generate_password)
-
-    # Set password for the user
-    echo "$username:$password" | sudo chpasswd
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to set password for user '$username'."
-        continue
-    fi
-
-    # Log actions
-    log_message="Created user '$username' with groups '$groups'"
-    echo "$(date +"%Y-%m-%d %T") $log_message" | sudo tee -a "$log_file" > /dev/null
-
-    # Store password securely
-    echo "$username,$password" | sudo tee -a "$password_file" > /dev/null
-
-done < "$input_file"
-
-echo "User creation process complete."
